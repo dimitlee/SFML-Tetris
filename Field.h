@@ -1,20 +1,18 @@
 #pragma once
 
-# include <vector>
+# include <map>
 # include <SFML/Graphics.hpp>
 
 # include "Tetramino.h"
 
-struct Cell
-{
-	int pos;
-	sf::Color color;
-};
-
 class Field
 {
-	std::vector<Cell> cells;
+	std::map <int, sf::Color> cells;
 	Tetramino tetra;
+	bool gameOver;
+
+	void newTetramino();
+	void clear();
 
 public:
 	Field();
@@ -22,7 +20,8 @@ public:
 	void rightPressed();
 	void upPressed();
 	void update();
-	const std::vector<Cell> & getCells() const;
-	std::vector<Cell> getTetraCells();
+	bool isGameOver();
+	const std::map <int, sf::Color> & getCells() const;
+	std::map <int, sf::Color> getTetraCells();
 };
 

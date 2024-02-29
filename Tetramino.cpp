@@ -1,68 +1,88 @@
 # include <vector>
+# include <map>
+# include <iostream>
+# include <SFML/Graphics.hpp>
 
 # include "Tetramino.h"
 # include "Constants.h"
 
+using namespace std;
+using namespace sf;
+
 Tetramino::Tetramino()
 {
+	type = 0;
+	rotIndex = 0;
 	cells = FIGURES[0];
-	baseCell = cells[0];
 	color = COLORS[0];
+	offset = 4;
 }
 
 Tetramino::Tetramino(int type)
 {
+	this->type = type;
 	cells = FIGURES[type];
-	baseCell = cells[0];
 	color = COLORS[type];
+	offset = 4;
+	rotIndex = 0;
 }
 
-void Tetramino::moveDown()
+bool Tetramino::moveDown(const map <int, Color>& fieldCells)
 {
-	for (auto & c : cells)
-	{
-		c += FIELD_WIDTH;
-	}
-}
-
-void Tetramino::moveLeft()
-{
+	int new_offset = offset + FIELD_WIDTH;
 	for (auto& c : cells)
 	{
-		c -= 1;
+		if (fieldCells.find(c + new_offset) != fieldCells.end()) return true;
+		if ((c + new_offset) / FIELD_WIDTH >= FIELD_HEIGHT) return true;
 	}
+	offset += FIELD_WIDTH;
+	return false;
 }
 
-void Tetramino::moveRight()
+void Tetramino::moveLeft(const map <int, Color>& fieldCells)
 {
+	int new_offset = offset - 1;
+	int leftmostX = FIELD_WIDTH;
 	for (auto& c : cells)
 	{
-		c += 1;
+		int x = (c + offset) % FIELD_WIDTH;
+		if (fieldCells.find(c + new_offset) != fieldCells.end()) return;
+		if (x < leftmostX) leftmostX = x;
 	}
+	if (leftmostX == 0) return;
+	offset -= 1;
+	return;
 }
 
-void Tetramino::rotate()
+void Tetramino::moveRight(const map <int, Color>& fieldCells)
 {
+	int newOffset = offset + 1;
+	int rightmostX = 0;
+
 	for (auto& c : cells)
 	{
-		if (c != baseCell)
-		{
-			int x = c % FIELD_WIDTH;
-			int y = c / FIELD_WIDTH;
-			int baseX = baseCell % FIELD_WIDTH;
-			int baseY = baseCell / FIELD_WIDTH;
-			c = (baseY + x - baseX) * FIELD_WIDTH + (baseX - y + baseY);
-		}
+		int x = (c + offset) % FIELD_WIDTH;
 
+		if (fieldCells.find(c + newOffset) != fieldCells.end()) return;
+		if (x > rightmostX) rightmostX = x;
 	}
+	if (rightmostX == FIELD_WIDTH - 1) return;
+	offset += 1;
+	return;
 }
 
-const std::vector<int> Tetramino::getCells() const
+void Tetramino::rotate(const map <int, Color>& fieldCells)
 {
-	return cells;
+	rotIndex = (rotIndex + 1) % ROTATIONS[type].size();
+	cells = ROTATIONS[type][rotIndex];
 }
 
-sf::Color Tetramino::getColor()
+map <int, Color> Tetramino::getCells()
 {
-	return color;
+	map <int, Color> tetraCells;
+	for (auto& c : cells)
+	{
+		tetraCells[c + offset] = color;
+	}
+	return tetraCells;
 }
